@@ -26,7 +26,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
   late TextEditingController _voterIdController;
   late TextEditingController _nameController;
   late TextEditingController _dobController;
-  late TextEditingController _addressController;
 
   bool _isVerifying = false;
 
@@ -43,12 +42,10 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
     _nameController = TextEditingController(
       text: widget.extractedData['name'] ?? '',
     );
-    _dobController = TextEditingController(
-      text: widget.extractedData['dob'] ?? '',
-    );
-    _addressController = TextEditingController(
-      text: widget.extractedData['address'] ?? '',
-    );
+
+    // ✅ Normalize DOB format — convert DD-MM-YYYY to DD/MM/YYYY
+    final rawDob = widget.extractedData['dob'] ?? '';
+    _dobController = TextEditingController(text: _normalizeDob(rawDob));
 
     _animController = AnimationController(
       vsync: this,
@@ -62,12 +59,41 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
     _animController.forward();
   }
 
+  // ✅ Normalize DOB — handles DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD
+  String _normalizeDob(String dob) {
+    if (dob.isEmpty) return '';
+
+    // Remove spaces
+    dob = dob.trim();
+
+    // If already DD/MM/YYYY
+    if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(dob)) return dob;
+
+    // Convert DD-MM-YYYY to DD/MM/YYYY
+    if (RegExp(r'^\d{2}-\d{2}-\d{4}$').hasMatch(dob)) {
+      return dob.replaceAll('-', '/');
+    }
+
+    // Convert YYYY-MM-DD to DD/MM/YYYY
+    if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(dob)) {
+      final parts = dob.split('-');
+      return '${parts[2]}/${parts[1]}/${parts[0]}';
+    }
+
+    // Convert YYYY/MM/DD to DD/MM/YYYY
+    if (RegExp(r'^\d{4}/\d{2}/\d{2}$').hasMatch(dob)) {
+      final parts = dob.split('/');
+      return '${parts[2]}/${parts[1]}/${parts[0]}';
+    }
+
+    return dob;
+  }
+
   @override
   void dispose() {
     _voterIdController.dispose();
     _nameController.dispose();
     _dobController.dispose();
-    _addressController.dispose();
     _animController.dispose();
     super.dispose();
   }
@@ -125,7 +151,7 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (_) => FractionallySizedBox(
-        heightFactor: approved ? 0.70 : 0.45,
+        heightFactor: approved ? 0.75 : 0.45,
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -361,14 +387,16 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                 _sectionLabel('VOTER DETAILS'),
                 const SizedBox(height: 14),
 
-                // Fields
+                // Voter ID
                 _buildField(
                   label: 'Voter ID Number',
                   controller: _voterIdController,
                   icon: Icons.badge_outlined,
-                  hint: 'e.g. ABC1234567',
+                  hint: 'e.g. SHJ2004117',
                 ),
                 const SizedBox(height: 14),
+
+                // Name
                 _buildField(
                   label: 'Full Name',
                   controller: _nameController,
@@ -376,21 +404,16 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                   hint: 'Enter full name',
                 ),
                 const SizedBox(height: 14),
+
+                // DOB
                 _buildField(
-                  label: 'Date of Birth',
+                  label: 'Date of Birth (DD/MM/YYYY)',
                   controller: _dobController,
                   icon: Icons.cake_outlined,
                   hint: 'DD/MM/YYYY',
                 ),
-                const SizedBox(height: 14),
-                _buildField(
-                  label: 'Address',
-                  controller: _addressController,
-                  icon: Icons.location_on_outlined,
-                  hint: 'Enter address',
-                  maxLines: 3,
-                ),
 
+                // ✅ Address removed — not on front of voter ID card
                 const SizedBox(height: 28),
 
                 SizedBox(
@@ -454,7 +477,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
     required TextEditingController controller,
     required IconData icon,
     required String hint,
-    int maxLines = 1,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -470,7 +492,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
-          maxLines: maxLines,
           style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
           decoration: InputDecoration(
             hintText: hint,
