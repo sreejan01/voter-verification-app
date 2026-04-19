@@ -1,7 +1,7 @@
 class ApiService {
   // ✅ Add https:// at the start
   static const String baseUrl =
-      "https://voter-verification-backend-production.up.railway.app";
+      "https://voter-verification-backend-vq7k.onrender.com";
 
   static String get login => "$baseUrl/login";
   static String get verifyOtp => "$baseUrl/verify-otp";
