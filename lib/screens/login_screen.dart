@@ -30,14 +30,10 @@ class _LoginScreenState extends State<LoginScreen>
   void initState() {
     super.initState();
     _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
+      vsync: this, duration: const Duration(milliseconds: 900));
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.12),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.12), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
   }
 
@@ -51,11 +47,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   Future<void> login() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    setState(() { _isLoading = true; _errorMessage = null; });
 
     try {
       final response = await http.post(
@@ -71,26 +63,23 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final officerId = data['officerId'];
-        final officerName = data['name'] ?? 'Officer';
-
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                OtpScreen(officerId: officerId, officerName: officerName),
+            builder: (context) => OtpScreen(
+              officerId: data['officerId'],
+              officerName: data['name'] ?? 'Officer',
+              assignedBooth: data['assignedBooth'] ?? '',   // ✅ pass booth
+              constituency: data['constituency'] ?? '',      // ✅ pass constituency
+            ),
           ),
         );
       } else {
         final body = jsonDecode(response.body);
-        setState(() {
-          _errorMessage = body['message'] ?? 'Invalid credentials.';
-        });
+        setState(() => _errorMessage = body['message'] ?? 'Invalid credentials.');
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Network error. Check your connection.';
-      });
+      setState(() => _errorMessage = 'Network error. Check your connection.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -108,13 +97,10 @@ class _LoginScreenState extends State<LoginScreen>
               position: _slideAnim,
               child: Column(
                 children: [
-                  // ── Government Header Banner ──
+                  // Government Header
                   Container(
                     width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 28,
-                      horizontal: 24,
-                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 24),
                     decoration: const BoxDecoration(
                       color: AppTheme.primary,
                       borderRadius: BorderRadius.only(
@@ -124,56 +110,31 @@ class _LoginScreenState extends State<LoginScreen>
                     ),
                     child: Column(
                       children: [
-                        // Emblem
                         Container(
-                          width: 80,
-                          height: 80,
+                          width: 80, height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.white.withOpacity(0.15),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
-                              width: 2,
-                            ),
+                            border: Border.all(color: Colors.white.withOpacity(0.4), width: 2),
                           ),
-                          child: const Icon(
-                            Icons.account_balance_rounded,
-                            color: Colors.white,
-                            size: 40,
-                          ),
+                          child: const Icon(Icons.account_balance_rounded,
+                              color: Colors.white, size: 40),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
-                          'ELECTION COMMISSION OF INDIA',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 1.5,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        const Text('ELECTION COMMISSION OF INDIA',
+                            style: TextStyle(color: Colors.white, fontSize: 13,
+                                fontWeight: FontWeight.w800, letterSpacing: 1.5),
+                            textAlign: TextAlign.center),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
                             color: AppTheme.accent.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: AppTheme.accent.withOpacity(0.5),
-                            ),
+                            border: Border.all(color: AppTheme.accent.withOpacity(0.5)),
                           ),
-                          child: const Text(
-                            'Voter Verification System',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
+                          child: const Text('Voter Verification System',
+                              style: TextStyle(color: Colors.white, fontSize: 12, letterSpacing: 0.5)),
                         ),
                       ],
                     ),
@@ -187,43 +148,25 @@ class _LoginScreenState extends State<LoginScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 8),
-
-                          // Title
-                          const Text(
-                            'Officer Login',
-                            style: TextStyle(
-                              color: AppTheme.textPrimary,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
+                          const Text('Officer Login',
+                              style: TextStyle(color: AppTheme.textPrimary,
+                                  fontSize: 24, fontWeight: FontWeight.w800)),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Sign in with your official credentials',
-                            style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 13,
-                            ),
-                          ),
-
+                          const Text('Sign in with your official credentials',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13)),
                           const SizedBox(height: 28),
 
-                          // Officer ID
                           _buildLabel('Officer ID'),
                           const SizedBox(height: 6),
                           _buildTextField(
                             controller: officerIdController,
                             hint: 'Enter your Officer ID',
                             icon: Icons.badge_outlined,
-                            validator: (val) =>
-                                val == null || val.trim().isEmpty
-                                ? 'Officer ID is required'
-                                : null,
+                            validator: (val) => val == null || val.trim().isEmpty
+                                ? 'Officer ID is required' : null,
                           ),
 
                           const SizedBox(height: 18),
-
-                          // Password
                           _buildLabel('Password'),
                           const SizedBox(height: 6),
                           _buildTextField(
@@ -233,53 +176,28 @@ class _LoginScreenState extends State<LoginScreen>
                             obscure: _obscurePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: AppTheme.textSecondary,
-                                size: 20,
-                              ),
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              ),
+                                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                color: AppTheme.textSecondary, size: 20),
+                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                             ),
-                            validator: (val) => val == null || val.isEmpty
-                                ? 'Password is required'
-                                : null,
+                            validator: (val) => val == null || val.isEmpty ? 'Password is required' : null,
                           ),
 
-                          // Error message
                           if (_errorMessage != null) ...[
                             const SizedBox(height: 14),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 14,
-                                vertical: 10,
-                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                               decoration: BoxDecoration(
                                 color: AppTheme.danger.withOpacity(0.08),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: AppTheme.danger.withOpacity(0.3),
-                                ),
+                                border: Border.all(color: AppTheme.danger.withOpacity(0.3)),
                               ),
                               child: Row(
                                 children: [
-                                  Icon(
-                                    Icons.error_outline,
-                                    color: AppTheme.danger,
-                                    size: 18,
-                                  ),
+                                  Icon(Icons.error_outline, color: AppTheme.danger, size: 18),
                                   const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      _errorMessage!,
-                                      style: TextStyle(
-                                        color: AppTheme.danger,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
+                                  Expanded(child: Text(_errorMessage!,
+                                      style: TextStyle(color: AppTheme.danger, fontSize: 13))),
                                 ],
                               ),
                             ),
@@ -287,56 +205,34 @@ class _LoginScreenState extends State<LoginScreen>
 
                           const SizedBox(height: 28),
 
-                          // Login Button
                           SizedBox(
-                            width: double.infinity,
-                            height: 52,
+                            width: double.infinity, height: 52,
                             child: ElevatedButton(
                               onPressed: _isLoading ? null : login,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppTheme.primary,
                                 foregroundColor: Colors.white,
-                                disabledBackgroundColor: AppTheme.primary
-                                    .withOpacity(0.5),
+                                disabledBackgroundColor: AppTheme.primary.withOpacity(0.5),
                                 elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                               child: _isLoading
-                                  ? const SizedBox(
-                                      width: 22,
-                                      height: 22,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.5,
-                                        valueColor: AlwaysStoppedAnimation(
-                                          Colors.white,
-                                        ),
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Sign In',
-                                      style: TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
+                                  ? const SizedBox(width: 22, height: 22,
+                                      child: CircularProgressIndicator(strokeWidth: 2.5,
+                                          valueColor: AlwaysStoppedAnimation(Colors.white)))
+                                  : const Text('Sign In',
+                                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700,
+                                          letterSpacing: 0.5)),
                             ),
                           ),
 
                           const SizedBox(height: 32),
-
-                          // Footer
                           Center(
                             child: Text(
                               'Authorized Personnel Only\nUnauthorized access is a punishable offence',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppTheme.textSecondary.withOpacity(0.6),
-                                fontSize: 11,
-                                height: 1.6,
-                              ),
+                              style: TextStyle(color: AppTheme.textSecondary.withOpacity(0.6),
+                                  fontSize: 11, height: 1.6),
                             ),
                           ),
                         ],
@@ -352,16 +248,9 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
-  Widget _buildLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: AppTheme.textPrimary,
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-      ),
-    );
-  }
+  Widget _buildLabel(String text) => Text(text,
+      style: const TextStyle(color: AppTheme.textPrimary,
+          fontSize: 13, fontWeight: FontWeight.w600));
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -383,30 +272,17 @@ class _LoginScreenState extends State<LoginScreen>
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: AppTheme.inputFill,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppTheme.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppTheme.border),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppTheme.danger),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: AppTheme.danger, width: 1.5),
-        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppTheme.border)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppTheme.border)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: AppTheme.primary, width: 1.5)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: AppTheme.danger)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: AppTheme.danger, width: 1.5)),
         errorStyle: TextStyle(color: AppTheme.danger, fontSize: 12),
       ),
     );
