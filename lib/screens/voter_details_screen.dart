@@ -9,12 +9,14 @@ class VoterDetailsScreen extends StatefulWidget {
   final Map<String, String?> extractedData;
   final String imagePath;
   final String officerId;
+  final String assignedBooth;
 
   const VoterDetailsScreen({
     super.key,
     required this.extractedData,
     required this.imagePath,
     required this.officerId,
+    required this.assignedBooth,
   });
 
   @override
@@ -28,6 +30,7 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
   late TextEditingController _dobController;
 
   bool _isVerifying = false;
+  Map<String, dynamic>? _fraudData;
 
   late AnimationController _animController;
   late Animation<double> _fadeAnim;
@@ -42,8 +45,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
     _nameController = TextEditingController(
       text: widget.extractedData['name'] ?? '',
     );
-
-    // ✅ Normalize DOB format — convert DD-MM-YYYY to DD/MM/YYYY
     final rawDob = widget.extractedData['dob'] ?? '';
     _dobController = TextEditingController(text: _normalizeDob(rawDob));
 
@@ -57,36 +58,48 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _animController, curve: Curves.easeOut));
     _animController.forward();
+
+    // ✅ Check fraud on load
+    _checkFraud();
   }
 
-  // ✅ Normalize DOB — handles DD-MM-YYYY, DD/MM/YYYY, YYYY-MM-DD
   String _normalizeDob(String dob) {
     if (dob.isEmpty) return '';
-
-    // Remove spaces
     dob = dob.trim();
-
-    // If already DD/MM/YYYY
     if (RegExp(r'^\d{2}/\d{2}/\d{4}$').hasMatch(dob)) return dob;
-
-    // Convert DD-MM-YYYY to DD/MM/YYYY
     if (RegExp(r'^\d{2}-\d{2}-\d{4}$').hasMatch(dob)) {
       return dob.replaceAll('-', '/');
     }
-
-    // Convert YYYY-MM-DD to DD/MM/YYYY
     if (RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(dob)) {
       final parts = dob.split('-');
       return '${parts[2]}/${parts[1]}/${parts[0]}';
     }
-
-    // Convert YYYY/MM/DD to DD/MM/YYYY
     if (RegExp(r'^\d{4}/\d{2}/\d{2}$').hasMatch(dob)) {
       final parts = dob.split('/');
       return '${parts[2]}/${parts[1]}/${parts[0]}';
     }
-
     return dob;
+  }
+
+  Future<void> _checkFraud() async {
+    try {
+      final response = await http.post(
+        Uri.parse(ApiService.detectFraud),
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "officerId": widget.officerId,
+          "voterId": widget.extractedData['voterId'],
+        }),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['riskLevel'] != 'Low') {
+          setState(() => _fraudData = data);
+        }
+      }
+    } catch (e) {
+      print('Fraud check error: $e');
+    }
   }
 
   @override
@@ -100,12 +113,10 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
 
   Future<void> _verifyVoter() async {
     if (_voterIdController.text.trim().isEmpty) {
-      _showResult(false, 'Voter ID is required for verification.', null);
+      _showResult(false, 'Voter ID is required for verification.', null, null);
       return;
     }
-
     setState(() => _isVerifying = true);
-
     try {
       final response = await http.post(
         Uri.parse(ApiService.verifyVoter),
@@ -115,9 +126,9 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
           "name": _nameController.text.trim(),
           "dob": _dobController.text.trim(),
           "officerId": widget.officerId,
+          "officerBooth": widget.assignedBooth, // ✅ send booth
         }),
       );
-
       if (!mounted) return;
       final data = jsonDecode(response.body);
 
@@ -126,22 +137,173 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
           true,
           data['message'] ?? 'Voter verified successfully!',
           data['voter'],
+          null,
         );
+      } else if (response.statusCode == 403) {
+        // ✅ Wrong booth error
+        _showBoothMismatch(data);
       } else {
         _showResult(
           false,
           data['message'] ?? 'Voter not found in database.',
           null,
+          null,
         );
       }
     } catch (e) {
-      _showResult(false, 'Network error. Check your connection.', null);
+      _showResult(false, 'Network error. Check your connection.', null, null);
     } finally {
       if (mounted) setState(() => _isVerifying = false);
     }
   }
 
-  void _showResult(bool approved, String message, dynamic voterData) {
+  // ✅ Wrong booth dialog
+  void _showBoothMismatch(dynamic data) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              Icons.wrong_location_rounded,
+              color: AppTheme.danger,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Wrong Booth!',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              data['message'] ?? 'Voter is from a different booth.',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.danger.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.danger.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: [
+                  _infoRow(
+                    'Your Booth',
+                    widget.assignedBooth,
+                    AppTheme.primary,
+                  ),
+                  const SizedBox(height: 8),
+                  _infoRow(
+                    'Voter\'s Booth',
+                    data['voterBooth'] ?? '-',
+                    AppTheme.danger,
+                  ),
+                  if (data['voterConstituency'] != null) ...[
+                    const SizedBox(height: 8),
+                    _infoRow(
+                      'Constituency',
+                      data['voterConstituency'],
+                      AppTheme.textSecondary,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.accent.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: AppTheme.accent,
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Please redirect this voter to their assigned booth.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow(String label, String value, Color color) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showResult(
+    bool approved,
+    String message,
+    dynamic voterData,
+    dynamic fraudData,
+  ) {
     showModalBottomSheet(
       context: context,
       isDismissible: false,
@@ -229,6 +391,12 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                         Icons.cake_outlined,
                         'DOB',
                         voterData['dob'] ?? '-',
+                      ),
+                      const Divider(color: AppTheme.border, height: 16),
+                      _resultRow(
+                        Icons.location_on_outlined,
+                        'Booth',
+                        voterData['boothNumber'] ?? '-',
                       ),
                     ],
                   ),
@@ -349,6 +517,65 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                 ),
                 const SizedBox(height: 10),
 
+                // ✅ Fraud alert if detected
+                if (_fraudData != null) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _fraudData!['riskLevel'] == 'High'
+                          ? AppTheme.danger.withOpacity(0.08)
+                          : AppTheme.accent.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _fraudData!['riskLevel'] == 'High'
+                            ? AppTheme.danger.withOpacity(0.3)
+                            : AppTheme.accent.withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.warning_rounded,
+                          color: _fraudData!['riskLevel'] == 'High'
+                              ? AppTheme.danger
+                              : AppTheme.accent,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '⚠️ ${_fraudData!['riskLevel']} Risk Detected',
+                                style: TextStyle(
+                                  color: _fraudData!['riskLevel'] == 'High'
+                                      ? AppTheme.danger
+                                      : AppTheme.accent,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              if (_fraudData!['recommendation'] != null)
+                                Text(
+                                  _fraudData!['recommendation'],
+                                  style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
                 // OCR notice
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -372,7 +599,7 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'OCR extracted — please verify and correct if needed',
+                          'AI corrected — please verify details below',
                           style: TextStyle(
                             color: AppTheme.primary,
                             fontSize: 12,
@@ -387,7 +614,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                 _sectionLabel('VOTER DETAILS'),
                 const SizedBox(height: 14),
 
-                // Voter ID
                 _buildField(
                   label: 'Voter ID Number',
                   controller: _voterIdController,
@@ -395,8 +621,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                   hint: 'e.g. SHJ2004117',
                 ),
                 const SizedBox(height: 14),
-
-                // Name
                 _buildField(
                   label: 'Full Name',
                   controller: _nameController,
@@ -404,8 +628,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                   hint: 'Enter full name',
                 ),
                 const SizedBox(height: 14),
-
-                // DOB
                 _buildField(
                   label: 'Date of Birth (DD/MM/YYYY)',
                   controller: _dobController,
@@ -413,7 +635,6 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
                   hint: 'DD/MM/YYYY',
                 ),
 
-                // ✅ Address removed — not on front of voter ID card
                 const SizedBox(height: 28),
 
                 SizedBox(
@@ -460,17 +681,15 @@ class _VoterDetailsScreenState extends State<VoterDetailsScreen>
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: AppTheme.textSecondary,
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        letterSpacing: 2,
-      ),
-    );
-  }
+  Widget _sectionLabel(String text) => Text(
+    text,
+    style: const TextStyle(
+      color: AppTheme.textSecondary,
+      fontSize: 11,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 2,
+    ),
+  );
 
   Widget _buildField({
     required String label,

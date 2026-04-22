@@ -10,11 +10,15 @@ import 'dashboard_screen.dart';
 class OtpScreen extends StatefulWidget {
   final String officerId;
   final String officerName;
+  final String assignedBooth; // ✅ booth info
+  final String constituency; // ✅ constituency
 
   const OtpScreen({
     super.key,
     required this.officerId,
     required this.officerName,
+    required this.assignedBooth,
+    required this.constituency,
   });
 
   @override
@@ -34,7 +38,7 @@ class _OtpScreenState extends State<OtpScreen>
   String? _errorMessage;
   String? _successMessage;
 
-  int _secondsLeft = 60;
+  int _secondsLeft = 120;
   Timer? _timer;
 
   late AnimationController _animController;
@@ -118,13 +122,15 @@ class _OtpScreenState extends State<OtpScreen>
             builder: (context) => DashboardScreen(
               officerId: widget.officerId,
               officerName: widget.officerName,
+              assignedBooth: widget.assignedBooth, // ✅ pass booth
+              constituency: widget.constituency, // ✅ pass constituency
             ),
           ),
         );
       } else {
-        setState(() {
-          _errorMessage = data['message'] ?? 'Invalid OTP. Try again.';
-        });
+        setState(
+          () => _errorMessage = data['message'] ?? 'Invalid OTP. Try again.',
+        );
         for (var c in _controllers) {
           c.clear();
         }
@@ -144,16 +150,13 @@ class _OtpScreenState extends State<OtpScreen>
       _errorMessage = null;
       _successMessage = null;
     });
-
     try {
       final response = await http.post(
         Uri.parse(ApiService.resendOtp),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"officerId": widget.officerId}),
       );
-
       if (!mounted) return;
-
       if (response.statusCode == 200) {
         for (var c in _controllers) {
           c.clear();
@@ -175,15 +178,15 @@ class _OtpScreenState extends State<OtpScreen>
   }
 
   void _onDigitEntered(int index, String value) {
-    if (value.isNotEmpty && index < 3) {
-      _focusNodes[index + 1].requestFocus();
-    }
+    if (value.isNotEmpty && index < 3) _focusNodes[index + 1].requestFocus();
     setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     final bool timerExpired = _secondsLeft == 0;
+    final minutes = (_secondsLeft ~/ 60).toString().padLeft(2, '0');
+    final seconds = (_secondsLeft % 60).toString().padLeft(2, '0');
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -211,7 +214,6 @@ class _OtpScreenState extends State<OtpScreen>
                     ),
                     child: Column(
                       children: [
-                        // Back button row
                         Row(
                           children: [
                             GestureDetector(
@@ -311,7 +313,7 @@ class _OtpScreenState extends State<OtpScreen>
                               Text(
                                 timerExpired
                                     ? 'OTP Expired'
-                                    : 'Expires in ${(_secondsLeft ~/ 60).toString().padLeft(2, '0')}:${(_secondsLeft % 60).toString().padLeft(2, '0')}',
+                                    : 'Expires in $minutes:$seconds',
                                 style: TextStyle(
                                   color: timerExpired
                                       ? AppTheme.danger
@@ -528,7 +530,6 @@ class _OtpScreenState extends State<OtpScreen>
                         ),
 
                         const SizedBox(height: 12),
-
                         TextButton(
                           onPressed: () => Navigator.pop(context),
                           child: const Text(

@@ -1,13 +1,23 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import '../services/api_service.dart';
 import '../theme/app_theme.dart';
 import 'voter_details_screen.dart';
 
 class VoterScannerScreen extends StatefulWidget {
   final String officerId;
-  const VoterScannerScreen({super.key, required this.officerId});
+  final String assignedBooth;
+
+  const VoterScannerScreen({
+    super.key,
+    required this.officerId,
+    required this.assignedBooth,
+  });
 
   @override
   State<VoterScannerScreen> createState() => _VoterScannerScreenState();
@@ -61,10 +71,11 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
   }
 
   Future<void> _captureAndScan() async {
-    if (_cameraController == null || !_cameraController!.value.isInitialized) {
+    if (_cameraController == null ||
+        !_cameraController!.value.isInitialized ||
+        _isProcessing) {
       return;
     }
-    if (_isProcessing) return;
     setState(() {
       _isProcessing = true;
       _statusMessage = 'Scanning...';
@@ -93,6 +104,8 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
 
   Future<void> _processImage(String imagePath) async {
     try {
+      // Step 1: Raw OCR
+      setState(() => _statusMessage = 'Reading card...');
       final inputImage = InputImage.fromFilePath(imagePath);
       final textRecognizer = TextRecognizer(
         script: TextRecognitionScript.latin,
@@ -101,9 +114,17 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
         inputImage,
       );
       await textRecognizer.close();
+      final String rawText = recognizedText.text;
+      print('Raw OCR:\n$rawText');
 
-      final String fullText = recognizedText.text;
-      final extracted = _extractVoterDetails(fullText);
+      // Step 2: AI correction
+      setState(() => _statusMessage = 'AI correcting text...');
+      Map<String, String?> extracted = await _aiCorrectOcr(rawText);
+
+      // Step 3: Fallback to manual parsing if AI fails
+      if (extracted['voterId'] == null && extracted['name'] == null) {
+        extracted = _extractVoterDetails(rawText);
+      }
 
       if (!mounted) return;
 
@@ -123,6 +144,7 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
             extractedData: extracted,
             imagePath: imagePath,
             officerId: widget.officerId,
+            assignedBooth: widget.assignedBooth,
           ),
         ),
       ).then((_) {
@@ -139,6 +161,36 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
     }
   }
 
+  // ✅ AI OCR Correction using Claude
+  Future<Map<String, String?>> _aiCorrectOcr(String rawText) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse(ApiService.correctOcr),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({"rawText": rawText}),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['extracted'] != null) {
+          final ext = data['extracted'];
+          return {
+            'voterId': ext['voterId'],
+            'name': ext['name'],
+            'dob': ext['dob'],
+            'rawText': rawText,
+          };
+        }
+      }
+    } catch (e) {
+      print('AI OCR correction failed: $e');
+    }
+    return {'voterId': null, 'name': null, 'dob': null, 'rawText': rawText};
+  }
+
+  // Fallback manual OCR parsing
   Map<String, String?> _extractVoterDetails(String text) {
     final lines = text
         .split('\n')
@@ -186,7 +238,6 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Camera preview
           if (_isCameraInitialized)
             Positioned.fill(child: CameraPreview(_cameraController!))
           else
@@ -196,10 +247,9 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
               ),
             ),
 
-          // Dark overlay with cutout
           Positioned.fill(child: CustomPaint(painter: _ScanOverlayPainter())),
 
-          // Animated scan frame
+          // Animated frame
           Center(
             child: AnimatedBuilder(
               animation: _pulseAnim,
@@ -259,7 +309,6 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
                     ),
                   ),
                   const Spacer(),
-                  // Title badge
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -290,7 +339,6 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
                     ),
                   ),
                   const Spacer(),
-                  // Flash
                   GestureDetector(
                     onTap: () async {
                       if (_cameraController == null) return;
@@ -323,7 +371,34 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
             ),
           ),
 
-          // Instruction text below frame
+          // ✅ Show assigned booth
+          Positioned(
+            top: 100,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  'Your Booth: ${widget.assignedBooth}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Status message
           Center(
             child: Transform.translate(
               offset: const Offset(0, 120),
@@ -363,7 +438,6 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  // Gallery
                   GestureDetector(
                     onTap: _isProcessing ? null : _pickFromGallery,
                     child: Container(
@@ -383,7 +457,6 @@ class _VoterScannerScreenState extends State<VoterScannerScreen>
                       ),
                     ),
                   ),
-                  // Capture
                   GestureDetector(
                     onTap: _isProcessing ? null : _captureAndScan,
                     child: Container(
@@ -500,14 +573,12 @@ class _CornerPainter extends CustomPainter {
   final double thickness;
   final bool top;
   final bool left;
-
   _CornerPainter({
     required this.color,
     required this.thickness,
     required this.top,
     required this.left,
   });
-
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()

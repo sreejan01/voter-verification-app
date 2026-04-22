@@ -11,11 +11,15 @@ import 'voter_search_screen.dart';
 class DashboardScreen extends StatefulWidget {
   final String officerId;
   final String officerName;
+  final String assignedBooth;
+  final String constituency;
 
   const DashboardScreen({
     super.key,
     required this.officerId,
     required this.officerName,
+    required this.assignedBooth,
+    required this.constituency,
   });
 
   @override
@@ -332,6 +336,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 MaterialPageRoute(
                                   builder: (context) => VoterScannerScreen(
                                     officerId: widget.officerId,
+                                    assignedBooth: widget.assignedBooth,
                                   ),
                                 ),
                               ).then((_) => _fetchStats()),
@@ -350,6 +355,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   builder: (context) =>
                                       ManualVerificationScreen(
                                         officerId: widget.officerId,
+                                        assignedBooth: widget.assignedBooth,
                                       ),
                                 ),
                               ).then((_) => _fetchStats()),
@@ -368,8 +374,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                         onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                VoterSearchScreen(officerId: widget.officerId),
+                            builder: (context) => VoterSearchScreen(
+                              officerId: widget.officerId,
+                              assignedBooth: widget.assignedBooth,
+                            ),
                           ),
                         ).then((_) => _fetchStats()),
                         child: Container(

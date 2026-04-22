@@ -7,8 +7,13 @@ import 'package:flutter/services.dart';
 
 class ManualVerificationScreen extends StatefulWidget {
   final String officerId;
+  final String assignedBooth;
 
-  const ManualVerificationScreen({super.key, required this.officerId}); //
+  const ManualVerificationScreen({
+    super.key,
+    required this.officerId,
+    required this.assignedBooth,
+  });
 
   @override
   State<ManualVerificationScreen> createState() =>
@@ -70,6 +75,7 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
           "name": _nameController.text.trim(),
           "dob": _dobController.text.trim(),
           "officerId": widget.officerId,
+          "officerBooth": widget.assignedBooth,
         }),
       );
 

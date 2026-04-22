@@ -6,8 +6,13 @@ import '../theme/app_theme.dart';
 
 class VoterSearchScreen extends StatefulWidget {
   final String officerId;
+  final String assignedBooth;
 
-  const VoterSearchScreen({super.key, required this.officerId});
+  const VoterSearchScreen({
+    super.key,
+    required this.officerId,
+    required this.assignedBooth,
+  });
 
   @override
   State<VoterSearchScreen> createState() => _VoterSearchScreenState();
@@ -283,6 +288,7 @@ class _VoterSearchScreenState extends State<VoterSearchScreen> {
           "voterId": voter['voterId'],
           "dob": voter['dob'],
           "officerId": widget.officerId,
+          "officerBooth": widget.assignedBooth,
         }),
       );
 
