@@ -28,7 +28,9 @@ class _HistoryScreenState extends State<HistoryScreen>
   void initState() {
     super.initState();
     _animController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
     _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _fetchHistory();
   }
@@ -40,24 +42,38 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   Future<void> _fetchHistory() async {
-    setState(() { _isLoading = true; _errorMessage = null; });
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
       // ✅ Send selected date to API
       final dateStr = _selectedDate.toIso8601String().split('T')[0];
       final response = await http.get(
-        Uri.parse('${ApiService.verificationHistory}?officerId=${widget.officerId}&date=$dateStr'),
+        Uri.parse(
+          '${ApiService.verificationHistory}?officerId=${widget.officerId}&date=$dateStr',
+        ),
       );
 
       if (!mounted) return;
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() { _history = data['history']; _isLoading = false; });
+        setState(() {
+          _history = data['history'];
+          _isLoading = false;
+        });
         _animController.forward(from: 0);
       } else {
-        setState(() { _errorMessage = 'Failed to load history.'; _isLoading = false; });
+        setState(() {
+          _errorMessage = 'Failed to load history.';
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      setState(() { _errorMessage = 'Network error. Check your connection.'; _isLoading = false; });
+      setState(() {
+        _errorMessage = 'Network error. Check your connection.';
+        _isLoading = false;
+      });
     }
   }
 
@@ -94,7 +110,11 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   String _formatTime(String dateStr) {
     final date = DateTime.parse(dateStr).toLocal();
-    final hour = date.hour > 12 ? date.hour - 12 : date.hour == 0 ? 12 : date.hour;
+    final hour = date.hour > 12
+        ? date.hour - 12
+        : date.hour == 0
+        ? 12
+        : date.hour;
     final min = date.minute.toString().padLeft(2, '0');
     final period = date.hour >= 12 ? 'PM' : 'AM';
     return '$hour:$min $period';
@@ -122,241 +142,347 @@ class _HistoryScreenState extends State<HistoryScreen>
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Verification History',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Verification History',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh_rounded), onPressed: _fetchHistory),
+          IconButton(
+            icon: const Icon(Icons.refresh_rounded),
+            onPressed: _fetchHistory,
+          ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppTheme.primary),
+            )
           : _errorMessage != null
-              ? Center(child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.error_outline, color: AppTheme.danger, size: 48),
-                    const SizedBox(height: 12),
-                    Text(_errorMessage!,
-                        style: const TextStyle(color: AppTheme.textSecondary)),
-                    const SizedBox(height: 16),
-                    ElevatedButton(
-                      onPressed: _fetchHistory,
-                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.primary),
-                      child: const Text('Retry', style: TextStyle(color: Colors.white)),
+          ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, color: AppTheme.danger, size: 48),
+                  const SizedBox(height: 12),
+                  Text(
+                    _errorMessage!,
+                    style: const TextStyle(color: AppTheme.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _fetchHistory,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
                     ),
-                  ],
-                ))
-              : FadeTransition(
-                  opacity: _fadeAnim,
-                  child: Column(
-                    children: [
-                      // Stats bar
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-                        color: AppTheme.primary,
-                        child: Row(
-                          children: [
-                            _statPill('Total', _history.length.toString(), Colors.white),
-                            const SizedBox(width: 10),
-                            _statPill('Approved', approved.toString(), const Color(0xFF4CAF50)),
-                            const SizedBox(width: 10),
-                            _statPill('Rejected', rejected.toString(), const Color(0xFFFF6B6B)),
-                          ],
+                    child: const Text(
+                      'Retry',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : FadeTransition(
+              opacity: _fadeAnim,
+              child: Column(
+                children: [
+                  // Stats bar
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                    color: AppTheme.primary,
+                    child: Row(
+                      children: [
+                        _statPill(
+                          'Total',
+                          _history.length.toString(),
+                          Colors.white,
                         ),
-                      ),
+                        const SizedBox(width: 10),
+                        _statPill(
+                          'Approved',
+                          approved.toString(),
+                          const Color(0xFF4CAF50),
+                        ),
+                        const SizedBox(width: 10),
+                        _statPill(
+                          'Rejected',
+                          rejected.toString(),
+                          const Color(0xFFFF6B6B),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                      // ✅ Date picker + filter tabs
-                      Container(
-                        color: AppTheme.surface,
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        child: Row(
-                          children: [
-                            // Date picker button
-                            GestureDetector(
-                              onTap: _pickDate,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                  // ✅ Date picker + filter tabs
+                  Container(
+                    color: AppTheme.surface,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        // Date picker button
+                        GestureDetector(
+                          onTap: _pickDate,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppTheme.primary.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.calendar_today_rounded,
+                                  color: AppTheme.primary,
+                                  size: 14,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _formatDate(_selectedDate),
+                                  style: const TextStyle(
+                                    color: AppTheme.primary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                const Icon(
+                                  Icons.arrow_drop_down_rounded,
+                                  color: AppTheme.primary,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Filter tabs
+                        Expanded(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: ['All', 'Approved', 'Rejected'].map((
+                                f,
+                              ) {
+                                final isSelected = _filter == f;
+                                return GestureDetector(
+                                  onTap: () => setState(() => _filter = f),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(right: 8),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 7,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppTheme.primary
+                                          : AppTheme.background,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : AppTheme.border,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      f,
+                                      style: TextStyle(
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppTheme.textSecondary,
+                                        fontSize: 12,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w700
+                                            : FontWeight.normal,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const Divider(height: 1, color: AppTheme.border),
+
+                  // List
+                  Expanded(
+                    child: _filteredHistory.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.history_rounded,
+                                  color: AppTheme.border,
+                                  size: 64,
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  _filter == 'All'
+                                      ? 'No verifications on ${_formatDate(_selectedDate)}'
+                                      : 'No $_filter verifications on ${_formatDate(_selectedDate)}',
+                                  style: const TextStyle(
+                                    color: AppTheme.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: _filteredHistory.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 10),
+                            itemBuilder: (context, index) {
+                              final item = _filteredHistory[index];
+                              final isApproved = item['status'] == 'Approved';
+                              return Container(
+                                padding: const EdgeInsets.all(14),
                                 decoration: BoxDecoration(
-                                  color: AppTheme.primary.withOpacity(0.08),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppTheme.primary.withOpacity(0.3)),
+                                  color: AppTheme.surface,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: isApproved
+                                        ? AppTheme.success.withOpacity(0.2)
+                                        : AppTheme.danger.withOpacity(0.2),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.03),
+                                      blurRadius: 6,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.calendar_today_rounded,
-                                        color: AppTheme.primary, size: 14),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      _formatDate(_selectedDate),
-                                      style: const TextStyle(
-                                          color: AppTheme.primary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.arrow_drop_down_rounded,
-                                        color: AppTheme.primary, size: 16),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            const SizedBox(width: 8),
-
-                            // Filter tabs
-                            Expanded(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  children: ['All', 'Approved', 'Rejected'].map((f) {
-                                    final isSelected = _filter == f;
-                                    return GestureDetector(
-                                      onTap: () => setState(() => _filter = f),
-                                      child: Container(
-                                        margin: const EdgeInsets.only(right: 8),
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 14, vertical: 7),
-                                        decoration: BoxDecoration(
-                                          color: isSelected ? AppTheme.primary : AppTheme.background,
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(
-                                            color: isSelected ? AppTheme.primary : AppTheme.border,
-                                          ),
-                                        ),
-                                        child: Text(f,
-                                          style: TextStyle(
-                                            color: isSelected ? Colors.white : AppTheme.textSecondary,
-                                            fontSize: 12,
-                                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const Divider(height: 1, color: AppTheme.border),
-
-                      // List
-                      Expanded(
-                        child: _filteredHistory.isEmpty
-                            ? Center(child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.history_rounded, color: AppTheme.border, size: 64),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _filter == 'All'
-                                        ? 'No verifications on ${_formatDate(_selectedDate)}'
-                                        : 'No $_filter verifications on ${_formatDate(_selectedDate)}',
-                                    style: const TextStyle(
-                                        color: AppTheme.textSecondary, fontSize: 14),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ))
-                            : ListView.separated(
-                                padding: const EdgeInsets.all(16),
-                                itemCount: _filteredHistory.length,
-                                separatorBuilder: (_, _) => const SizedBox(height: 10),
-                                itemBuilder: (context, index) {
-                                  final item = _filteredHistory[index];
-                                  final isApproved = item['status'] == 'Approved';
-                                  return Container(
-                                    padding: const EdgeInsets.all(14),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.surface,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
+                                    Container(
+                                      width: 42,
+                                      height: 42,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
                                         color: isApproved
-                                            ? AppTheme.success.withOpacity(0.2)
-                                            : AppTheme.danger.withOpacity(0.2),
+                                            ? AppTheme.success.withOpacity(0.1)
+                                            : AppTheme.danger.withOpacity(0.1),
                                       ),
-                                      boxShadow: [BoxShadow(
-                                          color: Colors.black.withOpacity(0.03),
-                                          blurRadius: 6, offset: const Offset(0, 2))],
+                                      child: Icon(
+                                        isApproved
+                                            ? Icons.check_circle_rounded
+                                            : Icons.cancel_rounded,
+                                        color: isApproved
+                                            ? AppTheme.success
+                                            : AppTheme.danger,
+                                        size: 22,
+                                      ),
                                     ),
-                                    child: Row(
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            item['voterName'] ?? 'Unknown',
+                                            style: const TextStyle(
+                                              color: AppTheme.textPrimary,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            item['voterId'],
+                                            style: const TextStyle(
+                                              color: AppTheme.textSecondary,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          if (!isApproved &&
+                                              item['reason'] != null) ...[
+                                            const SizedBox(height: 3),
+                                            Text(
+                                              item['reason'],
+                                              style: TextStyle(
+                                                color: AppTheme.danger
+                                                    .withOpacity(0.8),
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
                                       children: [
                                         Container(
-                                          width: 42, height: 42,
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
                                           decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
                                             color: isApproved
-                                                ? AppTheme.success.withOpacity(0.1)
-                                                : AppTheme.danger.withOpacity(0.1),
-                                          ),
-                                          child: Icon(
-                                            isApproved ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                                            color: isApproved ? AppTheme.success : AppTheme.danger,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(item['voterName'] ?? 'Unknown',
-                                                  style: const TextStyle(
-                                                      color: AppTheme.textPrimary,
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w600)),
-                                              const SizedBox(height: 3),
-                                              Text(item['voterId'],
-                                                  style: const TextStyle(
-                                                      color: AppTheme.textSecondary, fontSize: 12)),
-                                              if (!isApproved && item['reason'] != null) ...[
-                                                const SizedBox(height: 3),
-                                                Text(item['reason'],
-                                                    style: TextStyle(
-                                                        color: AppTheme.danger.withOpacity(0.8),
-                                                        fontSize: 11)),
-                                              ],
-                                            ],
-                                          ),
-                                        ),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 8, vertical: 3),
-                                              decoration: BoxDecoration(
-                                                color: isApproved
-                                                    ? AppTheme.success.withOpacity(0.1)
-                                                    : AppTheme.danger.withOpacity(0.1),
-                                                borderRadius: BorderRadius.circular(6),
-                                              ),
-                                              child: Text(item['status'],
-                                                  style: TextStyle(
-                                                      color: isApproved ? AppTheme.success : AppTheme.danger,
-                                                      fontSize: 11, fontWeight: FontWeight.w600)),
+                                                ? AppTheme.success.withOpacity(
+                                                    0.1,
+                                                  )
+                                                : AppTheme.danger.withOpacity(
+                                                    0.1,
+                                                  ),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
                                             ),
-                                            const SizedBox(height: 4),
-                                            Text(_formatTime(item['verifiedAt']),
-                                                style: const TextStyle(
-                                                    color: AppTheme.textSecondary, fontSize: 11)),
-                                          ],
+                                          ),
+                                          child: Text(
+                                            item['status'],
+                                            style: TextStyle(
+                                              color: isApproved
+                                                  ? AppTheme.success
+                                                  : AppTheme.danger,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          _formatTime(item['verifiedAt']),
+                                          style: const TextStyle(
+                                            color: AppTheme.textSecondary,
+                                            fontSize: 11,
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  );
-                                },
-                              ),
-                      ),
-                    ],
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
                   ),
-                ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -371,9 +497,19 @@ class _HistoryScreenState extends State<HistoryScreen>
         ),
         child: Column(
           children: [
-            Text(value, style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w800)),
+            Text(
+              value,
+              style: TextStyle(
+                color: color,
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(color: color.withOpacity(0.8), fontSize: 11)),
+            Text(
+              label,
+              style: TextStyle(color: color.withOpacity(0.8), fontSize: 11),
+            ),
           ],
         ),
       ),

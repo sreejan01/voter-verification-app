@@ -297,12 +297,13 @@ class _VoterSearchScreenState extends State<VoterSearchScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        _showResultDialog(
-          true,
-          data['message'] ?? 'Voter verified successfully!',
-        );
-        // Refresh search results
+        _showResultDialog(true, data['message']);
         _search(_searchController.text);
+      } else if (response.statusCode == 403) {
+        // ✅ Wrong booth
+        Navigator.pop(context); // close bottom sheet first
+        _showAlreadyVotedDialog(voter); // reuse dialog with custom message
+        // Or show dedicated booth mismatch dialog
       } else {
         _showResultDialog(false, data['message'] ?? 'Verification failed.');
       }
