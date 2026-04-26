@@ -75,130 +75,18 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
           "name": _nameController.text.trim(),
           "dob": _dobController.text.trim(),
           "officerId": widget.officerId,
-          "officerBooth": widget.assignedBooth,
+          "officerBooth": widget.assignedBooth, // ✅ booth enforcement
         }),
       );
 
       if (!mounted) return;
       final data = jsonDecode(response.body);
 
-      // ✅ CORRECT
       if (response.statusCode == 200) {
         _showResult(true, data['message'], data['voter']);
       } else if (response.statusCode == 403) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            backgroundColor: AppTheme.surface,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Row(
-              children: [
-                Icon(
-                  Icons.wrong_location_rounded,
-                  color: AppTheme.danger,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Wrong Booth!',
-                  style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  data['message'] ?? 'Voter is from a different booth.',
-                  style: const TextStyle(
-                    color: AppTheme.textSecondary,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppTheme.danger.withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppTheme.danger.withOpacity(0.2)),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Your Booth',
-                            style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            widget.assignedBooth,
-                            style: const TextStyle(
-                              color: AppTheme.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text(
-                            'Voter\'s Booth',
-                            style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                          Text(
-                            data['voterBooth'] ?? '-',
-                            style: TextStyle(
-                              color: AppTheme.danger,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+        // ✅ Wrong booth — dedicated dialog with working OK button
+        _showBoothMismatchDialog(data);
       } else {
         setState(
           () => _errorMessage = data['message'] ?? 'Verification failed.',
@@ -209,6 +97,177 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
     } finally {
       if (mounted) setState(() => _isVerifying = false);
     }
+  }
+
+  // ✅ Booth mismatch dialog — uses dialogContext so OK always works
+  void _showBoothMismatchDialog(dynamic data) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        backgroundColor: AppTheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(
+              Icons.wrong_location_rounded,
+              color: AppTheme.danger,
+              size: 24,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'Wrong Booth!',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              data['message'] ?? 'Voter is assigned to a different booth.',
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.danger.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppTheme.danger.withOpacity(0.2)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Your Booth',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        widget.assignedBooth,
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Voter's Booth",
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        data['voterBooth'] ?? '-',
+                        style: TextStyle(
+                          color: AppTheme.danger,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (data['voterConstituency'] != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Constituency',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Flexible(
+                          child: Text(
+                            data['voterConstituency'],
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppTheme.accent.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: AppTheme.accent,
+                    size: 16,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Please redirect this voter to their assigned booth.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              // ✅ dialogContext — always works regardless of navigation state
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primary,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'OK',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showResult(bool approved, String message, dynamic voterData) {
@@ -270,6 +329,7 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
                 textAlign: TextAlign.center,
               ),
 
+              // ✅ Show voter details with booth instead of address
               if (approved && voterData != null) ...[
                 const SizedBox(height: 16),
                 Container(
@@ -297,14 +357,22 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
                       const Divider(color: AppTheme.border, height: 16),
                       _resultRow(
                         Icons.cake_outlined,
-                        'DOB',
+                        'Date of Birth',
                         voterData['dob'] ?? '-',
                       ),
                       const Divider(color: AppTheme.border, height: 16),
+                      // ✅ Show booth number instead of blank address
                       _resultRow(
                         Icons.location_on_outlined,
-                        'Address',
-                        voterData['address'] ?? '-',
+                        'Booth',
+                        voterData['boothNumber'] ?? '-',
+                      ),
+                      const Divider(color: AppTheme.border, height: 16),
+                      // ✅ Show constituency
+                      _resultRow(
+                        Icons.map_outlined,
+                        'Constituency',
+                        voterData['constituency'] ?? '-',
                       ),
                     ],
                   ),
@@ -419,7 +487,7 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Info card
+                  // Info card with booth display
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -445,11 +513,11 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
                           ),
                         ),
                         const SizedBox(width: 14),
-                        const Expanded(
+                        Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
+                              const Text(
                                 'Manual Entry',
                                 style: TextStyle(
                                   color: AppTheme.textPrimary,
@@ -457,10 +525,10 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
-                                'Enter voter details to verify identity',
-                                style: TextStyle(
+                                'Booth: ${widget.assignedBooth}',
+                                style: const TextStyle(
                                   color: AppTheme.textSecondary,
                                   fontSize: 12,
                                 ),
@@ -505,10 +573,10 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
                     controller: _dobController,
                     icon: Icons.cake_outlined,
                     hint: 'DD/MM/YYYY',
-                    keyboardType: TextInputType.number, // ✅ number only
+                    keyboardType: TextInputType.number,
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly, // ✅ only digits
-                      _DateInputFormatter(), // ✅ auto adds slashes
+                      FilteringTextInputFormatter.digitsOnly,
+                      _DateInputFormatter(),
                     ],
                     validator: (val) {
                       if (val == null || val.trim().isEmpty) {
@@ -521,7 +589,8 @@ class _ManualVerificationScreenState extends State<ManualVerificationScreen>
                       return null;
                     },
                   ),
-                  // Error
+
+                  // Error message
                   if (_errorMessage != null) ...[
                     const SizedBox(height: 14),
                     Container(
@@ -723,15 +792,12 @@ class _DateInputFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final text = newValue.text.replaceAll('/', '');
-
     if (text.length > 8) return oldValue;
-
     final buffer = StringBuffer();
     for (int i = 0; i < text.length; i++) {
       if (i == 2 || i == 4) buffer.write('/');
       buffer.write(text[i]);
     }
-
     final string = buffer.toString();
     return newValue.copyWith(
       text: string,
