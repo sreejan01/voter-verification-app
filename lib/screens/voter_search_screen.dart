@@ -34,9 +34,10 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
   void initState() {
     super.initState();
     _animController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
-    _fadeAnim =
-        CurvedAnimation(parent: _animController, curve: Curves.easeOut);
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeOut);
     _searchController.addListener(_onSearchChanged);
   }
 
@@ -98,32 +99,43 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
       context: context,
       backgroundColor: AppTheme.surface,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (_) => Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                  color: AppTheme.border,
-                  borderRadius: BorderRadius.circular(2)),
+                color: AppTheme.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
             ),
             const SizedBox(height: 20),
-            const Icon(Icons.how_to_vote_rounded,
-                color: AppTheme.primary, size: 40),
+            const Icon(
+              Icons.how_to_vote_rounded,
+              color: AppTheme.primary,
+              size: 40,
+            ),
             const SizedBox(height: 12),
-            const Text('Confirm Verification',
-                style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800)),
+            const Text(
+              'Confirm Verification',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 6),
             Text(
               'Verify ${voter['name']} (${voter['voterId']})?',
               style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 13),
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -137,7 +149,8 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                       side: const BorderSide(color: AppTheme.border),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     child: const Text('Cancel'),
                   ),
@@ -152,10 +165,13 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
-                    child: const Text('Verify',
-                        style: TextStyle(fontWeight: FontWeight.w700)),
+                    child: const Text(
+                      'Verify',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
                 ),
               ],
@@ -191,8 +207,7 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
         // ✅ Wrong booth — show dedicated dialog
         _showBoothMismatchDialog(data);
       } else {
-        _showResultDialog(
-            false, data['message'] ?? 'Verification failed.');
+        _showResultDialog(false, data['message'] ?? 'Verification failed.');
       }
     } catch (e) {
       _showResultDialog(false, 'Network error. Check your connection.');
@@ -208,18 +223,23 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
       barrierDismissible: true,
       builder: (BuildContext dialogContext) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.wrong_location_rounded,
-                color: AppTheme.danger, size: 24),
+            Icon(
+              Icons.wrong_location_rounded,
+              color: AppTheme.danger,
+              size: 24,
+            ),
             const SizedBox(width: 8),
-            const Text('Wrong Booth!',
-                style: TextStyle(
-                    color: AppTheme.textPrimary,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16)),
+            const Text(
+              'Wrong Booth!',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -227,10 +247,11 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              data['message'] ??
-                  'Voter is assigned to a different booth.',
+              data['message'] ?? 'Voter is assigned to a different booth.',
               style: const TextStyle(
-                  color: AppTheme.textSecondary, fontSize: 13),
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 16),
             Container(
@@ -238,38 +259,49 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
               decoration: BoxDecoration(
                 color: AppTheme.danger.withOpacity(0.06),
                 borderRadius: BorderRadius.circular(10),
-                border:
-                    Border.all(color: AppTheme.danger.withOpacity(0.2)),
+                border: Border.all(color: AppTheme.danger.withOpacity(0.2)),
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Your Booth',
-                          style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12)),
-                      Text(widget.assignedBooth,
-                          style: const TextStyle(
-                              color: AppTheme.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Your Booth',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        widget.assignedBooth,
+                        style: const TextStyle(
+                          color: AppTheme.primary,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text("Voter's Booth",
-                          style: TextStyle(
-                              color: AppTheme.textSecondary,
-                              fontSize: 12)),
-                      Text(data['voterBooth'] ?? '-',
-                          style: TextStyle(
-                              color: AppTheme.danger,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700)),
+                      const Text(
+                        "Voter's Booth",
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        data['voterBooth'] ?? '-',
+                        style: TextStyle(
+                          color: AppTheme.danger,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                   if (data['voterConstituency'] != null) ...[
@@ -277,17 +309,21 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Constituency',
-                            style: TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 12)),
+                        const Text(
+                          'Constituency',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
                         Flexible(
                           child: Text(
                             data['voterConstituency'],
                             style: const TextStyle(
-                                color: AppTheme.textSecondary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600),
+                              color: AppTheme.textSecondary,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
                             textAlign: TextAlign.right,
                           ),
                         ),
@@ -306,14 +342,19 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: AppTheme.accent, size: 16),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: AppTheme.accent,
+                    size: 16,
+                  ),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Please redirect this voter to their assigned booth.',
                       style: TextStyle(
-                          color: AppTheme.textSecondary, fontSize: 12),
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                 ],
@@ -332,10 +373,13 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                 foregroundColor: Colors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
-              child: const Text('OK',
-                  style: TextStyle(fontWeight: FontWeight.w700)),
+              child: const Text(
+                'OK',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
           ),
         ],
@@ -349,14 +393,14 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
       barrierDismissible: true,
       builder: (BuildContext dialogContext) => AlertDialog(
         backgroundColor: AppTheme.surface,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 8),
             Container(
-              width: 64, height: 64,
+              width: 64,
+              height: 64,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: approved
@@ -364,9 +408,7 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                     : AppTheme.danger.withOpacity(0.1),
               ),
               child: Icon(
-                approved
-                    ? Icons.check_circle_rounded
-                    : Icons.cancel_rounded,
+                approved ? Icons.check_circle_rounded : Icons.cancel_rounded,
                 color: approved ? AppTheme.success : AppTheme.danger,
                 size: 36,
               ),
@@ -375,31 +417,40 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
             Text(
               approved ? 'VERIFIED' : 'FAILED',
               style: TextStyle(
-                  color: approved ? AppTheme.success : AppTheme.danger,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5),
+                color: approved ? AppTheme.success : AppTheme.danger,
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.5,
+              ),
             ),
             const SizedBox(height: 6),
-            Text(message,
-                style: const TextStyle(
-                    color: AppTheme.textSecondary, fontSize: 13),
-                textAlign: TextAlign.center),
+            Text(
+              message,
+              style: const TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 13,
+              ),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      approved ? AppTheme.success : AppTheme.primary,
+                  backgroundColor: approved
+                      ? AppTheme.success
+                      : AppTheme.primary,
                   foregroundColor: Colors.white,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                child: const Text('OK',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
+                child: const Text(
+                  'OK',
+                  style: TextStyle(fontWeight: FontWeight.w700),
+                ),
               ),
             ),
           ],
@@ -416,12 +467,12 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
         backgroundColor: AppTheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: const Text('Voter Search',
-            style:
-                TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Voter Search',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+        ),
         leading: IconButton(
-          icon:
-              const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -440,17 +491,27 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                 controller: _searchController,
                 autofocus: true,
                 style: const TextStyle(
-                    color: AppTheme.textPrimary, fontSize: 14),
+                  color: AppTheme.textPrimary,
+                  fontSize: 14,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Search by name or voter ID...',
                   hintStyle: const TextStyle(
-                      color: AppTheme.textSecondary, fontSize: 13),
-                  prefixIcon: const Icon(Icons.search_rounded,
-                      color: AppTheme.primary, size: 20),
+                    color: AppTheme.textSecondary,
+                    fontSize: 13,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AppTheme.primary,
+                    size: 20,
+                  ),
                   suffixIcon: _searchController.text.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded,
-                              color: AppTheme.textSecondary, size: 18),
+                          icon: const Icon(
+                            Icons.clear_rounded,
+                            color: AppTheme.textSecondary,
+                            size: 18,
+                          ),
                           onPressed: () {
                             _searchController.clear();
                             setState(() {
@@ -462,7 +523,9 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
                       : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 14),
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
                 ),
               ),
             ),
@@ -471,20 +534,23 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
           // Booth info bar
           Container(
             width: double.infinity,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             color: AppTheme.primary.withOpacity(0.06),
             child: Row(
               children: [
-                const Icon(Icons.location_on_rounded,
-                    color: AppTheme.primary, size: 14),
+                const Icon(
+                  Icons.location_on_rounded,
+                  color: AppTheme.primary,
+                  size: 14,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'Your Booth: ${widget.assignedBooth}',
                   style: const TextStyle(
-                      color: AppTheme.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600),
+                    color: AppTheme.primary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),
@@ -496,251 +562,227 @@ class _VoterSearchScreenState extends State<VoterSearchScreen>
           Expanded(
             child: _isSearching
                 ? const Center(
-                    child: CircularProgressIndicator(
-                        color: AppTheme.primary))
+                    child: CircularProgressIndicator(color: AppTheme.primary),
+                  )
                 : _errorMessage != null
-                    ? Center(
-                        child: Text(_errorMessage!,
-                            style: const TextStyle(
-                                color: AppTheme.textSecondary)))
-                    : _results.isEmpty
-                        ? Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                ? Center(
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: AppTheme.textSecondary),
+                    ),
+                  )
+                : _results.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.search_rounded,
+                          color: AppTheme.border,
+                          size: 64,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          _searchController.text.isEmpty
+                              ? 'Enter name or voter ID to search'
+                              : 'No voters found',
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : FadeTransition(
+                    opacity: _fadeAnim,
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _results.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final voter = _results[index];
+                        final hasVoted = voter['hasVoted'] == true;
+                        final isWrongBooth =
+                            voter['boothNumber'] != null &&
+                            voter['boothNumber'] != widget.assignedBooth;
+
+                        return Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: hasVoted
+                                  ? AppTheme.success.withOpacity(0.3)
+                                  : isWrongBooth
+                                  ? AppTheme.danger.withOpacity(0.3)
+                                  : AppTheme.border,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.03),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
                               children: [
-                                Icon(Icons.search_rounded,
-                                    color: AppTheme.border, size: 64),
-                                const SizedBox(height: 12),
-                                Text(
-                                  _searchController.text.isEmpty
-                                      ? 'Enter name or voter ID to search'
-                                      : 'No voters found',
-                                  style: const TextStyle(
-                                      color: AppTheme.textSecondary,
-                                      fontSize: 14),
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: hasVoted
+                                        ? AppTheme.success.withOpacity(0.1)
+                                        : isWrongBooth
+                                        ? AppTheme.danger.withOpacity(0.1)
+                                        : AppTheme.primary.withOpacity(0.08),
+                                  ),
+                                  child: Icon(
+                                    hasVoted
+                                        ? Icons.how_to_vote_rounded
+                                        : isWrongBooth
+                                        ? Icons.wrong_location_rounded
+                                        : Icons.person_outline_rounded,
+                                    color: hasVoted
+                                        ? AppTheme.success
+                                        : isWrongBooth
+                                        ? AppTheme.danger
+                                        : AppTheme.primary,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        voter['name'] ?? '-',
+                                        style: const TextStyle(
+                                          color: AppTheme.textPrimary,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        voter['voterId'] ?? '-',
+                                        style: const TextStyle(
+                                          color: AppTheme.textSecondary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.location_on_outlined,
+                                            size: 11,
+                                            color: isWrongBooth
+                                                ? AppTheme.danger
+                                                : AppTheme.textSecondary,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            'Booth: ${voter['boothNumber'] ?? '-'}',
+                                            style: TextStyle(
+                                              color: isWrongBooth
+                                                  ? AppTheme.danger
+                                                  : AppTheme.textSecondary,
+                                              fontSize: 11,
+                                              fontWeight: isWrongBooth
+                                                  ? FontWeight.w600
+                                                  : FontWeight.normal,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: hasVoted
+                                            ? AppTheme.success.withOpacity(0.1)
+                                            : isWrongBooth
+                                            ? AppTheme.danger.withOpacity(0.1)
+                                            : AppTheme.primary.withOpacity(
+                                                0.08,
+                                              ),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        hasVoted
+                                            ? 'Voted'
+                                            : isWrongBooth
+                                            ? 'Wrong Booth'
+                                            : 'Not Voted',
+                                        style: TextStyle(
+                                          color: hasVoted
+                                              ? AppTheme.success
+                                              : isWrongBooth
+                                              ? AppTheme.danger
+                                              : AppTheme.primary,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                    if (!hasVoted) ...[
+                                      const SizedBox(height: 8),
+                                      SizedBox(
+                                        height: 30,
+                                        child: ElevatedButton(
+                                          onPressed: _isVerifying
+                                              ? null
+                                              : () =>
+                                                    _confirmVerification(voter),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: isWrongBooth
+                                                ? AppTheme.danger
+                                                : AppTheme.primary,
+                                            foregroundColor: Colors.white,
+                                            elevation: 0,
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                            ),
+                                          ),
+                                          child: const Text(
+                                            'Verify',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
                               ],
                             ),
-                          )
-                        : FadeTransition(
-                            opacity: _fadeAnim,
-                            child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: _results.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: 10),
-                              itemBuilder: (context, index) {
-                                final voter = _results[index];
-                                final hasVoted =
-                                    voter['hasVoted'] == true;
-                                final isWrongBooth =
-                                    voter['boothNumber'] != null &&
-                                        voter['boothNumber'] !=
-                                            widget.assignedBooth;
-
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.surface,
-                                    borderRadius:
-                                        BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: hasVoted
-                                          ? AppTheme.success
-                                              .withOpacity(0.3)
-                                          : isWrongBooth
-                                              ? AppTheme.danger
-                                                  .withOpacity(0.3)
-                                              : AppTheme.border,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                          color: Colors.black
-                                              .withOpacity(0.03),
-                                          blurRadius: 6,
-                                          offset: const Offset(0, 2))
-                                    ],
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(14),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 44, height: 44,
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            color: hasVoted
-                                                ? AppTheme.success
-                                                    .withOpacity(0.1)
-                                                : isWrongBooth
-                                                    ? AppTheme.danger
-                                                        .withOpacity(0.1)
-                                                    : AppTheme.primary
-                                                        .withOpacity(0.08),
-                                          ),
-                                          child: Icon(
-                                            hasVoted
-                                                ? Icons
-                                                    .how_to_vote_rounded
-                                                : isWrongBooth
-                                                    ? Icons
-                                                        .wrong_location_rounded
-                                                    : Icons
-                                                        .person_outline_rounded,
-                                            color: hasVoted
-                                                ? AppTheme.success
-                                                : isWrongBooth
-                                                    ? AppTheme.danger
-                                                    : AppTheme.primary,
-                                            size: 22,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(voter['name'] ?? '-',
-                                                  style: const TextStyle(
-                                                      color: AppTheme
-                                                          .textPrimary,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.w600)),
-                                              const SizedBox(height: 3),
-                                              Text(
-                                                  voter['voterId'] ?? '-',
-                                                  style: const TextStyle(
-                                                      color: AppTheme
-                                                          .textSecondary,
-                                                      fontSize: 12)),
-                                              const SizedBox(height: 3),
-                                              Row(
-                                                children: [
-                                                  Icon(
-                                                      Icons
-                                                          .location_on_outlined,
-                                                      size: 11,
-                                                      color: isWrongBooth
-                                                          ? AppTheme
-                                                              .danger
-                                                          : AppTheme
-                                                              .textSecondary),
-                                                  const SizedBox(
-                                                      width: 3),
-                                                  Text(
-                                                    'Booth: ${voter['boothNumber'] ?? '-'}',
-                                                    style: TextStyle(
-                                                        color: isWrongBooth
-                                                            ? AppTheme
-                                                                .danger
-                                                            : AppTheme
-                                                                .textSecondary,
-                                                        fontSize: 11,
-                                                        fontWeight: isWrongBooth
-                                                            ? FontWeight
-                                                                .w600
-                                                            : FontWeight
-                                                                .normal),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets
-                                                  .symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 3),
-                                              decoration: BoxDecoration(
-                                                color: hasVoted
-                                                    ? AppTheme.success
-                                                        .withOpacity(0.1)
-                                                    : isWrongBooth
-                                                        ? AppTheme.danger
-                                                            .withOpacity(
-                                                                0.1)
-                                                        : AppTheme.primary
-                                                            .withOpacity(
-                                                                0.08),
-                                                borderRadius:
-                                                    BorderRadius.circular(
-                                                        6),
-                                              ),
-                                              child: Text(
-                                                hasVoted
-                                                    ? 'Voted'
-                                                    : isWrongBooth
-                                                        ? 'Wrong Booth'
-                                                        : 'Not Voted',
-                                                style: TextStyle(
-                                                    color: hasVoted
-                                                        ? AppTheme.success
-                                                        : isWrongBooth
-                                                            ? AppTheme
-                                                                .danger
-                                                            : AppTheme
-                                                                .primary,
-                                                    fontSize: 11,
-                                                    fontWeight:
-                                                        FontWeight.w600),
-                                              ),
-                                            ),
-                                            if (!hasVoted) ...[
-                                              const SizedBox(height: 8),
-                                              SizedBox(
-                                                height: 30,
-                                                child: ElevatedButton(
-                                                  onPressed: _isVerifying
-                                                      ? null
-                                                      : () =>
-                                                          _confirmVerification(
-                                                              voter),
-                                                  style: ElevatedButton
-                                                      .styleFrom(
-                                                    backgroundColor:
-                                                        isWrongBooth
-                                                            ? AppTheme
-                                                                .danger
-                                                            : AppTheme
-                                                                .primary,
-                                                    foregroundColor:
-                                                        Colors.white,
-                                                    elevation: 0,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 12),
-                                                    shape: RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(
-                                                                    6)),
-                                                  ),
-                                                  child: const Text(
-                                                      'Verify',
-                                                      style: TextStyle(
-                                                          fontSize: 11,
-                                                          fontWeight:
-                                                              FontWeight
-                                                                  .w700)),
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
                           ),
+                        );
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
